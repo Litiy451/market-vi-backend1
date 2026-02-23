@@ -1,12 +1,13 @@
 package com.example.marketvibackend1.service;
 
 import com.example.marketvibackend1.controller.dto.RegisterRequests;
+import com.example.marketvibackend1.controller.dto.UserResponse;
+import com.example.marketvibackend1.controller.dto.UpdateUserRequest;
 import com.example.marketvibackend1.model.User;
 import com.example.marketvibackend1.repository.UserRepository;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -19,9 +20,9 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User createUser(RegisterRequests req) {
-        if (req.password == null || req.password.isBlank()) {
-            throw new IllegalArgumentException("Password is required");
+    public ResponseEntity<UserResponse> createUser(RegisterRequests req) {
+        if (req == null || req.password == null || req.password.isBlank()) {
+            return ResponseEntity.badRequest().build();
         }
 
         User user = new User();
@@ -30,32 +31,43 @@ public class UserService {
         user.setLastName(req.lastName);
         user.setPasswordHash(passwordEncoder.encode(req.password));
 
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        return ResponseEntity.ok(UserMapper.toResponse(saved));
     }
 
-    public Optional<User> getUserById(long id) {
-        return userRepository.findById(id);
+    public ResponseEntity<UserResponse> getUserById(long id) {
+        return userRepository.findById(id)
+                .map(u -> ResponseEntity.ok(UserMapper.toResponse(u)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    public Optional<User> deleteUserById(long id) {
-        Optional<User> userOpt = userRepository.findById(id);
-        userOpt.ifPresent(u -> userRepository.deleteById(id));
-        return userOpt;
-    }
-
-    public User updateUser(long id, User updated) {
-        User existing = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found: " + id));
-
-        existing.setEmail(updated.getEmail());
-        existing.setFirstName(updated.getFirstName());
-        existing.setLastName(updated.getLastName());
-
-        if (updated.getPasswordHash() != null && !updated.getPasswordHash().isBlank()) {
-            existing.setPasswordHash(passwordEncoder.encode(updated.getPasswordHash()));
+    public ResponseEntity<UserResponse> updateUser(long id, UpdateUserRequest req) {
+        if (req == null) {
+            return ResponseEntity.badRequest().build();
         }
 
-        return userRepository.save(existing);
+        return userRepository.findById(id)
+                .map(existing -> {
+                    if (req.email != null) existing.setEmail(req.email);
+                    if (req.firstName != null) existing.setFirstName(req.firstName);
+                    if (req.lastName != null) existing.setLastName(req.lastName);
+
+                    if (req.password != null && !req.password.isBlank()) {
+                        existing.setPasswordHash(passwordEncoder.encode(req.password));
+                    }
+
+                    User saved = userRepository.save(existing);
+                    return ResponseEntity.ok(UserMapper.toResponse(saved));
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    public ResponseEntity<UserResponse> deleteUserById(long id) {
+        return userRepository.findById(id)
+                .map(u -> {
+                    userRepository.deleteById(id);
+                    return ResponseEntity.ok(UserMapper.toResponse(u));
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 }

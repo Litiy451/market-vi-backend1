@@ -20,7 +20,6 @@ public class User {
     private String firstName;
     @Column(name = "lastName")
     private String lastName;
-    @JsonIgnore
     @Column(name = "passwordHash")
     private String passwordHash;
 

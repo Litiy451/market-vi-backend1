@@ -1,14 +1,16 @@
 package com.example.marketvibackend1.controller;
 
 import com.example.marketvibackend1.controller.dto.RegisterRequests;
-import com.example.marketvibackend1.model.User;
+import com.example.marketvibackend1.controller.dto.UpdateUserRequest;
+import com.example.marketvibackend1.controller.dto.UserResponse;
 import com.example.marketvibackend1.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-@RequestMapping("/api/users")
 @RestController
+@RequestMapping("/api/users")
 public class UserController {
+
     private final UserService userService;
 
     public UserController(UserService userService) {
@@ -16,32 +18,22 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody RegisterRequests req) {
-        User saved = userService.createUser(req);
-        return ResponseEntity.ok(saved);
+    public ResponseEntity<UserResponse> createUser(@RequestBody RegisterRequests req) {
+        return userService.createUser(req);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable long id) {
-        return userService.getUserById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<UserResponse> getUserById(@PathVariable long id) {
+        return userService.getUserById(id);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable long id, @RequestBody User user) {
-        try {
-            User updated = userService.updateUser(id, user);
-            return ResponseEntity.ok(updated);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<UserResponse> updateUser(@PathVariable long id, @RequestBody UpdateUserRequest req) {
+        return userService.updateUser(id, req);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<User> deleteUserById(@PathVariable long id) {
-        return userService.deleteUserById(id)
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<UserResponse> deleteUserById(@PathVariable long id) {
+        return userService.deleteUserById(id);
     }
 }
