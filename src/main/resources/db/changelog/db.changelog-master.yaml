@@ -1,0 +1,28 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-init-products-search
+      author: marketvi
+      changes:
+        - sqlFile:
+            path: db/changelog/changes/001-init-products-search.sql
+
+  - changeSet:
+      id: 002-fill-search-vector
+      author: marketvi
+      changes:
+        - sqlFile:
+            path: db/changelog/changes/002-fill-search-vector.sql
+
+  - changeSet:
+      id: 003-create-search-index
+      author: marketvi
+      changes:
+        - sqlFile:
+            path: db/changelog/changes/003-create-search-index.sql
+
+  - changeSet:
+      id: 004-create-search-trigger
+      author: marketvi
+      changes:
+        - sqlFile:
+            path: db/changelog/changes/004-create-search-trigger.sql
